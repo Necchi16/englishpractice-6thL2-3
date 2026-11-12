@@ -288,7 +288,6 @@
       const [viewingWork, setViewingWork] = useState(null);
 
       const [canPlayGame, setCanPlayGame] = useState(false);
-      const [isFirstWork, setIsFirstWork] = useState(true);
 
       const [isListening, setIsListening] = useState(false);
       const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -314,9 +313,6 @@
         load('wTJapanHelpers', setHelpers, true);
         load('wTJapanWorks', setSavedWorks, true);
         load('wTJapanSentences', setCreatedSentences, true);
-        
-        const first = localStorage.getItem('wTJapanIsFirst');
-        if (first !== null) setIsFirstWork(first === 'true');
       }, []);
 
       const saveProgress = (newCoins, newItems, newLevel, newExp, newHelpers) => {
@@ -352,11 +348,6 @@
         localStorage.setItem('wTJapanWorks', JSON.stringify(newWorks));
         setSavedWorks(newWorks);
         setViewingWork(newWorks.find(w => w.date === date));
-      };
-
-      const markFirstDone = () => {
-        setIsFirstWork(false);
-        localStorage.setItem('wTJapanIsFirst', 'false');
       };
 
       const speak = useCallback((text) => {
@@ -477,11 +468,7 @@
         const newWork = { date: new Date().toLocaleString(), sentence: finalSentence, img: "", inputs: inputs, hasPlayedGame: false };
         setViewingWork(newWork);
         
-        if (isFirstWork) {
-          goToStep('NOTE_WRITE');
-        } else {
-          goToStep('IMAGE_INPUT');
-        }
+        goToStep('NOTE_WRITE');
       };
 
       const rollGacha = (isBonus, hasNextBonus = false, currentCoins) => {
@@ -826,7 +813,6 @@
               </div>
               
               <button onClick={() => {
-                markFirstDone();
                 goToStep('IMAGE_INPUT');
               }} className="w-full bg-green-500 text-white text-xl font-bold py-5 rounded-2xl shadow-lg hover:bg-green-600 transition">
                 ✅ チェック完了（画像さがしへすすむ）
