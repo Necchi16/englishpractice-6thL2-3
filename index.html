@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Welcome to Japan. 日本のよいところをしょうかいしよう</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
+
+  <style>
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+    @keyframes bounceIn { 0% { transform: scale(0.1); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+    .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    * { -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .font-note { font-family: 'Andika', sans-serif; font-size: 38px; letter-spacing: 0.05em; }
+    .slide-bg { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); }
+    
+    .four-lines-bg {
+      background-image: 
+        linear-gradient(transparent 34px, #4b5563 34px, #4b5563 36px, transparent 36px),
+        linear-gradient(transparent 45px, #4b5563 45px, #4b5563 47px, transparent 47px),
+        linear-gradient(transparent 62px, #dc2626 62px, #dc2626 64px, transparent 64px),
+        linear-gradient(transparent 72px, #4b5563 72px, #4b5563 74px, transparent 74px);
+      background-size: 100% 90px;
+      line-height: 90px;
+      padding-top: 3px; 
+      min-height: 90px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar { height: 12px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    .shake-animation { animation: shake 0.5s; }
+    @keyframes shake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      10% { transform: translate(-1px, -2px) rotate(-1deg); }
+      20% { transform: translate(-3px, 0px) rotate(1deg); }
+      30% { transform: translate(3px, 2px) rotate(0deg); }
+      40% { transform: translate(1px, -1px) rotate(1deg); }
+      50% { transform: translate(-1px, 2px) rotate(-1deg); }
+      60% { transform: translate(-3px, 1px) rotate(0deg); }
+      70% { transform: translate(3px, 1px) rotate(-1deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      90% { transform: translate(1px, 2px) rotate(0deg); }
+      100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+  </style>
+</head>
+<body class="bg-indigo-50 font-sans touch-manipulation">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+    const DIC = {
+      'お正月': "New Year's Day", 'ひなまつり': 'Doll Festival', 'こどもの日': "Children's Day", '七夕': 'Star Festival',
+      '運動会': 'Sports Day', '大晦日': "New Year's Eve", '富士山': 'Mt. Fuji', 'すし': 'sushi', 'たこ焼き': 'takoyaki', 
+      'ラーメン': 'ramen', '京都': 'Kyoto', '東京': 'Tokyo',
+      '春': 'spring', '夏': 'summer', '秋': 'autumn', '冬': 'winter', 'いつでも': 'Japan',
+      '同じ': 'same', '違う': 'different', '長い': 'long', '短い': 'short',
+      '速い': 'fast', '遅い': 'slow', '驚くべき': 'amazing', '美しい': 'beautiful',
+      'かっこいい': 'cool', 'わくわくする': 'exciting', '有名な': 'famous', 'すばらしい': 'fantastic',
+      'お気に入り': 'favorite', '楽しい': 'fun', '良い': 'good', 'すごい': 'great',
+      '面白い': 'interesting', '素敵な': 'nice', '輝く': 'shiny', '素晴らしい': 'wonderful',
+      '花火を見る': 'see fireworks', 'もちを食べる': 'eat mochi', 'おどる': 'dance', '歌う': 'sing', 'あそぶ': 'play'
+    };
+
+    const QUIZ_WORDS = Object.keys(DIC).map(ja => ({ ja, en: DIC[ja] }));
+
+    const INNUUNI_STAGES = {
+      1: { id: 1, name: "イッヌーニ", emoji: "🐶", reqExp: 0, next: [2] },
+      2: { id: 2, name: "シバイヌーニ", emoji: "🐕", reqExp: 5, next: [3] },
+      3: { id: 3, name: "プードルニ", emoji: "🐩", reqExp: 15, next: [4] },
+      4: { id: 4, name: "ハスキーニ", emoji: "🐺", reqExp: 30, next: [5] },
+      5: { id: 5, name: "ケルベロスーニ", emoji: "🔥", reqExp: 50, next: [6] },
+      6: { id: 6, name: "ペガサスーニ", emoji: "🦄", reqExp: 80, next: [7] },
+      7: { id: 7, name: "ドラゴンイッヌ", emoji: "🐉", reqExp: 120, next: [8] },
+      8: { id: 8, name: "ゴッドイッヌ", emoji: "👑", reqExp: 200, next: [] }
+    };
+
+    const SALMON_TYPES = {
+      normal: { id: 'normal', name: '普通のシャケ', exp: 1, emoji: '🐟' },
+      silver: { id: 'silver', name: '銀のシャケ', exp: 3, emoji: '🤍🐟' },
+      gold: { id: 'gold', name: '金のシャケ', exp: 5, emoji: '💛🐟' },
+      legend: { id: 'legend', name: '幻のシャケ', exp: 10, emoji: '🌈🐟' }
+    };
+
+    const GAS_URLS = [
+      "https://script.google.com/macros/s/AKfycbweESd0ikrHJl6Pl5lPnniXgoUWW45_YDUIAXuCBYKkclBs3T47GX83B5q-GAc8Hw3sPQ/exec",
+      "https://script.google.com/a/macros/s.kansai.soka.ed.jp/s/AKfycbyWmVjVU2MWqugLvwaal9Gp768JDQX_ZywK3SyPjpsClR_AaSf9FHR6FPJHVekinpQiUQ/exec",
+      "https://script.google.com/macros/s/AKfycbz6Jeiu5yDwBOwWpAIicyXdWqtaT-qT7KjP59DU3b7IkP3eDucpggHW1Fxrm2xBbsQL/exec"
+    ];
+
+    const INITIAL_INPUTS = [
+      { type: 'event', label: '行事・名物・名所', prefix: 'We have ', suffix: ' ', example: 'お正月' },
+      { type: 'season', label: '季節', prefix: 'in ', suffix: '. ', example: '冬' },
+      { type: 'action', label: 'できること', prefix: 'You can ', suffix: '. ', example: 'もちを食べる' },
+      { type: 'feeling', label: '様子', prefix: "It's ", suffix: '.', example: '楽しい' },
+      { type: 'detail', label: 'よりくわしく説明', prefix: '', suffix: '', example: '', note: '※「私は～」「それは～」など、主語から書きましょう。' }
+    ];
+
+    // 新しい2D版コインゲーム
+    const TwoDCoinGame = ({ playerEmoji, helpers, onFinish }) => {
+      const containerRef = useRef(null);
+      const [timeLeft, setTimeLeft] = useState(15);
+      const [score, setScore] = useState(0);
+      const gameData = useRef({
+        isPlaying: true, score: 0, frozenFrames: 0, keys: {},
+        player: { x: 50, y: 50, el: null },
+        coins: [], enemies: [], helperSprites: []
+      });
+
+      useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        const g = gameData.current;
+
+        const createEl = (emoji, size, z) => {
+          const el = document.createElement('div');
+          el.textContent = emoji;
+          el.style.position = 'absolute';
+          el.style.fontSize = size;
+          el.style.transform = 'translate(-50%, -50%)';
+          el.style.zIndex = z;
+          el.style.userSelect = 'none';
+          container.appendChild(el);
+          return el;
+        };
+
+        g.player.el = createEl(playerEmoji, '4rem', '10');
+
+        for(let i=0; i<10; i++) {
+           const x = 10 + Math.random()*80;
+           const y = 10 + Math.random()*80;
+           g.coins.push({ el: createEl('🪙', '2.5rem', '5'), x, y });
+        }
+
+        for(let i=0; i<6; i++) {
+           const x = 10 + Math.random()*80;
+           const y = 10 + Math.random()*80;
+           g.enemies.push({ el: createEl('👾', '3rem', '8'), x, y, dx: (Math.random()-0.5)*0.8, dy: (Math.random()-0.5)*0.8 });
+        }
+
+        if (helpers) {
+           helpers.forEach(h => {
+             const x = 10 + Math.random()*80;
+             const y = 10 + Math.random()*80;
+             g.helperSprites.push({ el: createEl(h.emoji, '3rem', '9'), x, y, dx: (Math.random()-0.5)*1.0, dy: (Math.random()-0.5)*1.0 });
+           });
+        }
+
+        const onKeyDown = e => g.keys[e.key] = true;
+        const onKeyUp = e => g.keys[e.key] = false;
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+
+        let timerId = setInterval(() => {
+          setTimeLeft(p => {
+            if(p <= 1) { clearInterval(timerId); g.isPlaying = false; return 0; }
+            return p - 1;
+          });
+        }, 1000);
+
+        let animId;
+        const animate = () => {
+          if(!g.isPlaying) return;
+          animId = requestAnimationFrame(animate);
+
+          if (g.frozenFrames > 0) {
+            g.frozenFrames--;
+            g.player.el.style.opacity = Math.floor(g.frozenFrames / 10) % 2 === 0 ? '0.3' : '1';
+          } else {
+            g.player.el.style.opacity = '1';
+            let dx = 0, dy = 0;
+            const spd = 0.8;
+            if(g.keys['ArrowUp'] || g.keys['w']) dy -= spd;
+            if(g.keys['ArrowDown'] || g.keys['s']) dy += spd;
+            if(g.keys['ArrowLeft'] || g.keys['a']) dx -= spd;
+            if(g.keys['ArrowRight'] || g.keys['d']) dx += spd;
+            g.player.x = Math.max(3, Math.min(97, g.player.x + dx));
+            g.player.y = Math.max(3, Math.min(97, g.player.y + dy));
+          }
+          g.player.el.style.left = g.player.x + '%';
+          g.player.el.style.top = g.player.y + '%';
+
+          for(let i=g.coins.length-1; i>=0; i--) {
+            const c = g.coins[i];
+            const dist = Math.hypot(g.player.x - c.x, g.player.y - c.y);
+            if (dist < 6) {
+              container.removeChild(c.el);
+              g.coins.splice(i, 1);
+              g.score++;
+              setScore(g.score);
+              const nx = 5 + Math.random()*90;
+              const ny = 5 + Math.random()*90;
+              g.coins.push({ el: createEl('🪙', '2.5rem', '5'), x: nx, y: ny });
+            }
+          }
+
+          g.enemies.forEach(e => {
+            e.x += e.dx; e.y += e.dy;
+            if(e.x < 2 || e.x > 98) e.dx *= -1;
+            if(e.y < 2 || e.y > 98) e.dy *= -1;
+            e.el.style.left = e.x + '%'; e.el.style.top = e.y + '%';
+            
+            if (g.frozenFrames === 0 && Math.hypot(g.player.x - e.x, g.player.y - e.y) < 5) {
+              g.frozenFrames = 60;
+              container.classList.add('shake-animation');
+              setTimeout(() => container.classList.remove('shake-animation'), 500);
+            }
+          });
+
+          g.helperSprites.forEach(h => {
+            h.x += h.dx; h.y += h.dy;
+            if(h.x < 2 || h.x > 98) h.dx *= -1;
+            if(h.y < 2 || h.y > 98) h.dy *= -1;
+            h.el.style.left = h.x + '%'; h.el.style.top = h.y + '%';
+
+            g.enemies.forEach(e => {
+              if (Math.hypot(h.x - e.x, h.y - e.y) < 5) {
+                e.x = 10 + Math.random()*80; e.y = 10 + Math.random()*80;
+              }
+            });
+          });
+        };
+        animate();
+
+        return () => {
+           window.removeEventListener('keydown', onKeyDown);
+           window.removeEventListener('keyup', onKeyUp);
+           clearInterval(timerId);
+           cancelAnimationFrame(animId);
+           if(container) container.innerHTML = '';
+        };
+      }, []);
+
+      useEffect(() => {
+        if (timeLeft === 0) onFinish(gameData.current.score);
+      }, [timeLeft, onFinish]);
+
+      const handleBtn = (key, isDown) => gameData.current.keys[key] = isDown;
+
+      return (
+        <div className="flex flex-col items-center bg-gray-900 w-full h-full touch-none relative">
+          <div className="absolute top-4 left-0 right-0 flex justify-between px-6 z-20 pointer-events-none">
+            <div className="text-2xl font-bold text-white bg-gray-800/80 px-6 py-2 rounded-full border-2 border-gray-600 backdrop-blur">⏳ {timeLeft}</div>
+            <div className="text-2xl font-bold text-yellow-400 bg-gray-800/80 px-6 py-2 rounded-full border-2 border-gray-600 backdrop-blur">🪙 {score}</div>
+          </div>
+          <div className="flex-1 w-full overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-sky-200 relative border-b-4 border-gray-700" ref={containerRef}></div>
+          <div className="h-48 w-full bg-gray-800 flex items-center justify-center shrink-0">
+            <div className="grid grid-cols-3 gap-4 w-full max-w-[300px]">
+              <div />
+              <button onPointerDown={() => handleBtn('ArrowUp', true)} onPointerUp={() => handleBtn('ArrowUp', false)} onPointerLeave={() => handleBtn('ArrowUp', false)} className="bg-gray-600 text-white p-6 rounded-2xl text-4xl active:bg-blue-500 flex items-center justify-center shadow-lg">⬆️</button>
+              <div />
+              <button onPointerDown={() => handleBtn('ArrowLeft', true)} onPointerUp={() => handleBtn('ArrowLeft', false)} onPointerLeave={() => handleBtn('ArrowLeft', false)} className="bg-gray-600 text-white p-6 rounded-2xl text-4xl active:bg-blue-500 flex items-center justify-center shadow-lg">⬅️</button>
+              <button onPointerDown={() => handleBtn('ArrowDown', true)} onPointerUp={() => handleBtn('ArrowDown', false)} onPointerLeave={() => handleBtn('ArrowDown', false)} className="bg-gray-600 text-white p-6 rounded-2xl text-4xl active:bg-blue-500 flex items-center justify-center shadow-lg">⬇️</button>
+              <button onPointerDown={() => handleBtn('ArrowRight', true)} onPointerUp={() => handleBtn('ArrowRight', false)} onPointerLeave={() => handleBtn('ArrowRight', false)} className="bg-gray-600 text-white p-6 rounded-2xl text-4xl active:bg-blue-500 flex items-center justify-center shadow-lg">➡️</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    function App() {
+      const [step, setStep] = useState('HOME'); 
+      const [stepHistory, setStepHistory] = useState(['HOME']);
+      const [totalCoins, setTotalCoins] = useState(0);
+      const [items, setItems] = useState({ normal: 0, silver: 0, gold: 0, legend: 0 });
+      const [level, setLevel] = useState(1);
+      const [exp, setExp] = useState(0);
+      const [helpers, setHelpers] = useState([]);
+      
+      const [inputs, setInputs] = useState(JSON.parse(JSON.stringify(INITIAL_INPUTS)));
+      const [translatingState, setTranslatingState] = useState(false);
+      
+      const [savedWorks, setSavedWorks] = useState([]);
+      const [createdSentences, setCreatedSentences] = useState([]); 
+      const [viewingWork, setViewingWork] = useState(null);
+
+      const [canPlayGame, setCanPlayGame] = useState(false);
+      const [isFirstWork, setIsFirstWork] = useState(true);
+
+      const [isListening, setIsListening] = useState(false);
+      const [feedbackMsg, setFeedbackMsg] = useState("");
+      const [slideFailCount, setSlideFailCount] = useState(0);
+      const [localVoiceCleared, setLocalVoiceCleared] = useState(false); 
+      const [gachaState, setGachaState] = useState(null); 
+      const [quizOptions, setQuizOptions] = useState([]);
+
+      const [practiceIndex, setPracticeIndex] = useState(0);
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const synth = window.speechSynthesis;
+
+      useEffect(() => {
+        const load = (key, setter, isObj = false) => {
+          const val = localStorage.getItem(key);
+          if (val) setter(isObj ? JSON.parse(val) : parseInt(val, 10));
+        };
+        load('wTJapanCoins', setTotalCoins);
+        load('wTJapanItems', setItems, true);
+        load('wTJapanLevel', setLevel);
+        load('wTJapanExp', setExp);
+        load('wTJapanHelpers', setHelpers, true);
+        load('wTJapanWorks', setSavedWorks, true);
+        load('wTJapanSentences', setCreatedSentences, true);
+        
+        const first = localStorage.getItem('wTJapanIsFirst');
+        if (first !== null) setIsFirstWork(first === 'true');
+      }, []);
+
+      const saveProgress = (newCoins, newItems, newLevel, newExp, newHelpers) => {
+        localStorage.setItem('wTJapanCoins', newCoins.toString());
+        localStorage.setItem('wTJapanItems', JSON.stringify(newItems));
+        localStorage.setItem('wTJapanLevel', newLevel.toString());
+        localStorage.setItem('wTJapanExp', newExp.toString());
+        if (newHelpers) localStorage.setItem('wTJapanHelpers', JSON.stringify(newHelpers));
+        
+        setTotalCoins(newCoins); setItems(newItems); setLevel(newLevel); setExp(newExp);
+        if (newHelpers) setHelpers(newHelpers);
+      };
+
+      const saveWork = (workData) => {
+        const newWorks = [workData, ...savedWorks];
+        localStorage.setItem('wTJapanWorks', JSON.stringify(newWorks));
+        setSavedWorks(newWorks);
+        
+        const newSentences = [...createdSentences, workData.sentence];
+        localStorage.setItem('wTJapanSentences', JSON.stringify(newSentences));
+        setCreatedSentences(newSentences);
+      };
+
+      const updateWork = (date, updatedSentence, updatedImg) => {
+        const newWorks = savedWorks.map(w => w.date === date ? { ...w, sentence: updatedSentence, img: updatedImg } : w);
+        localStorage.setItem('wTJapanWorks', JSON.stringify(newWorks));
+        setSavedWorks(newWorks);
+        setViewingWork(newWorks.find(w => w.date === date));
+      };
+
+      const updateWorkGameStatus = (date) => {
+        const newWorks = savedWorks.map(w => w.date === date ? { ...w, hasPlayedGame: true } : w);
+        localStorage.setItem('wTJapanWorks', JSON.stringify(newWorks));
+        setSavedWorks(newWorks);
+        setViewingWork(newWorks.find(w => w.date === date));
+      };
+
+      const markFirstDone = () => {
+        setIsFirstWork(false);
+        localStorage.setItem('wTJapanIsFirst', 'false');
+      };
+
+      const speak = useCallback((text) => {
+        if (synth.speaking) synth.cancel();
+        const utterThis = new SpeechSynthesisUtterance(text);
+        utterThis.lang = 'en-US';
+        utterThis.rate = 0.9;
+        synth.speak(utterThis);
+      }, [synth]);
+
+      const goToStep = (newStep) => {
+        setStepHistory(prev => [...prev, newStep]);
+        setStep(newStep);
+        window.scrollTo(0, 0);
+      };
+
+      const goBack = () => {
+        if (stepHistory.length > 1) {
+          const newHistory = [...stepHistory];
+          newHistory.pop();
+          setStep(newHistory[newHistory.length - 1]);
+          setStepHistory(newHistory);
+        } else {
+          setStep('HOME');
+          setStepHistory(['HOME']);
+        }
+      };
+
+      const startListening = (targetSentence, onSuccess, onFail) => {
+        if (!SpeechRecognition) {
+          setFeedbackMsg("マイクが使えません。");
+          if(onFail) onFail();
+          return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        setIsListening(true);
+        setFeedbackMsg("");
+
+        recognition.onresult = (event) => {
+          const trans = event.results[0][0].transcript.toLowerCase();
+          
+          const transWords = trans.replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w);
+          const targetWords = targetSentence.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w);
+          
+          let matchCount = 0;
+          targetWords.forEach(tw => {
+            if (transWords.includes(tw)) matchCount++;
+          });
+          const matchRate = targetWords.length > 0 ? (matchCount / targetWords.length) : 0;
+          
+          if (matchRate >= 0.5 || trans.replace(/[^a-z\s]/g, '') === targetSentence.toLowerCase().replace(/[^a-z\s]/g, '')) {
+            setFeedbackMsg("Excellent! 👏");
+            setTimeout(() => { setFeedbackMsg(""); onSuccess(); }, 1500);
+          } else {
+            setFeedbackMsg(`おしい！\n(${trans} と聞こえました)`);
+            if(onFail) onFail();
+          }
+        };
+        recognition.onerror = () => { setFeedbackMsg("エラーがおきました。もう一度押してね。"); setIsListening(false); if(onFail) onFail(); };
+        recognition.onend = () => setIsListening(false);
+        recognition.start();
+      };
+
+      const handleTranslateAll = async () => {
+        setTranslatingState(true);
+        let ev = inputs[0].action.trim();
+        let se = inputs[1].action.trim();
+        let ac = inputs[2].action.trim();
+        let fe = inputs[3].action.trim();
+        let de = inputs[4].action.trim();
+        
+        let enEv = DIC[ev] || ev;
+        let enSe = DIC[se] || se;
+        let enAc = DIC[ac] || ac;
+        let enFe = DIC[fe] || fe;
+        let enDe = '';
+
+        try {
+          const fetchTranslation = async (text) => {
+            try {
+              const res = await fetch(`${GAS_URLS[0]}?text=${encodeURIComponent(text)}`).then(r=>r.json());
+              return res.text ? res.text.toLowerCase() : text;
+            } catch (err) {
+              return text;
+            }
+          };
+
+          if (!DIC[ev]) enEv = await fetchTranslation(ev);
+          if (!DIC[se]) enSe = await fetchTranslation(se);
+          if (!DIC[ac]) {
+            // "ing" になるのを防ぐため、「私は〜できる」という文で翻訳させて can 以降を抜き出す
+            let trans = await fetchTranslation("私は" + ac + "ことができる。");
+            trans = trans.replace(/^(i|we|you|they|he|she)\s+can\s+/i, '').replace(/\.$/, '').trim();
+            enAc = trans;
+          }
+          if (!DIC[fe]) enFe = await fetchTranslation(fe);
+          if (de) enDe = await fetchTranslation(de);
+        } catch (e) {
+          console.warn("Translation API error", e);
+        }
+        
+        let finalSentence = `We have ${enEv} in ${enSe}. You can ${enAc}. It's ${enFe}.`;
+        if (enDe) {
+           // 先頭を大文字にする
+           enDe = enDe.charAt(0).toUpperCase() + enDe.slice(1);
+           finalSentence += ` ${enDe}`;
+           if(!finalSentence.endsWith('.')) finalSentence += '.';
+        }
+
+        setTranslatingState(false);
+        
+        if (createdSentences.includes(finalSentence)) {
+          alert("その文章はもう作ったことがあるよ！ちがう文章を作ってみよう。");
+          return;
+        }
+
+        const newWork = { date: new Date().toLocaleString(), sentence: finalSentence, img: "", inputs: inputs, hasPlayedGame: false };
+        setViewingWork(newWork);
+        
+        if (isFirstWork) {
+          goToStep('NOTE_WRITE');
+        } else {
+          goToStep('IMAGE_INPUT');
+        }
+      };
+
+      const rollGacha = (isBonus, hasNextBonus = false, currentCoins) => {
+        const rand = Math.random();
+        let itemKey = 'normal';
+        if (isBonus) {
+          if (rand < 0.1) itemKey = 'legend';
+          else if (rand < 0.5) itemKey = 'gold';
+          else itemKey = 'silver';
+        } else {
+          if (rand < 0.05) itemKey = 'gold';
+          else if (rand < 0.2) itemKey = 'silver';
+          else itemKey = 'normal';
+        }
+        const item = SALMON_TYPES[itemKey];
+        const newItems = { ...items, [itemKey]: items[itemKey] + 1 };
+        
+        const coinsToSave = currentCoins !== undefined ? currentCoins : totalCoins;
+        saveProgress(coinsToSave, newItems, level, exp, helpers);
+        
+        setGachaState({ phase: 'result', item, hasNextBonus });
+      };
+
+      const startGacha = () => {
+        if (totalCoins < 5) return;
+        const nextCoins = totalCoins - 5;
+        
+        const targetWord = QUIZ_WORDS[Math.floor(Math.random() * QUIZ_WORDS.length)];
+        let options = [targetWord];
+        while(options.length < 4) {
+          const w = QUIZ_WORDS[Math.floor(Math.random() * QUIZ_WORDS.length)];
+          if(!options.find(o => o.en === w.en)) options.push(w);
+        }
+        options = options.sort(() => Math.random() - 0.5);
+        
+        setQuizOptions(options);
+        gachaTargetRef.current = targetWord; 
+        
+        rollGacha(false, true, nextCoins); 
+      };
+
+      const gachaTargetRef = useRef(null);
+
+      const handleQuizAnswer = (ans) => {
+        if (ans.en === gachaTargetRef.current.en) {
+          setGachaState(prev => ({...prev, phase: 'voice'}));
+        } else {
+          setFeedbackMsg("ちがうよ！もういちど！");
+          setTimeout(() => setFeedbackMsg(""), 1500);
+        }
+      };
+
+      const feedInnuuni = (type) => {
+        if (items[type] > 0) {
+          const salmon = SALMON_TYPES[type];
+          const newItems = { ...items, [type]: items[type] - 1 };
+          const newExp = exp + salmon.exp;
+          
+          let currentStage = INNUUNI_STAGES[level];
+          let nextReq = currentStage.next.length > 0 ? INNUUNI_STAGES[currentStage.next[0]].reqExp : 9999;
+          let newLevel = level;
+          let newHelpers = [...helpers];
+          
+          if (newExp >= nextReq && currentStage.next.length > 0) {
+            newLevel = currentStage.next[0];
+            if (!newHelpers.find(h => h.id === currentStage.id)) {
+              newHelpers.push(currentStage);
+            }
+          }
+          
+          saveProgress(totalCoins, newItems, newLevel, newExp, newHelpers);
+          setFeedbackMsg(`${salmon.name} をたべた！ +${salmon.exp} EXP`);
+          setTimeout(() => setFeedbackMsg(""), 2000);
+        }
+      };
+
+      const BackButton = () => (
+        <button onClick={goBack} className="absolute top-4 left-4 bg-white/90 px-4 py-2 rounded-full shadow font-bold text-gray-700 border hover:bg-gray-100 z-20">
+          ◀ もどる
+        </button>
+      );
+
+      const HomeButton = () => (
+        <button onClick={() => { setStep('HOME'); setStepHistory(['HOME']); }} className="absolute top-4 right-4 bg-indigo-100/90 px-4 py-2 rounded-full shadow-md font-bold text-indigo-800 border-2 border-indigo-300 hover:bg-indigo-200 z-20 transition-colors">
+          🏠 ホーム
+        </button>
+      );
+
+      let content = null;
+      const currentStage = INNUUNI_STAGES[level] || INNUUNI_STAGES[1];
+      const nextReq = currentStage.next.length > 0 ? INNUUNI_STAGES[currentStage.next[0]].reqExp : 'MAX';
+      
+      const isAllInputsFilled = inputs.every(inp => inp.action && inp.action.trim() !== '');
+
+      if (step === 'HOME') {
+        content = (
+          <div className="min-h-screen p-4 md:p-8 flex flex-col justify-center relative bg-indigo-50 pb-20">
+            <div className="max-w-3xl w-full mx-auto bg-white rounded-3xl shadow-xl border-4 border-indigo-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-8 text-center text-white">
+                <h1 className="text-3xl md:text-4xl font-extrabold drop-shadow-md">Welcome to Japan.<br/><span className="text-xl md:text-2xl opacity-90 mt-2 block">日本のよいところを しょうかいしよう</span></h1>
+              </div>
+              <div className="p-6 text-center">
+                
+                {savedWorks.length > 0 && (
+                  <div className="mb-8 text-left bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                    <h3 className="font-bold text-gray-700 mb-3">📁 つくった スライド</h3>
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                      {savedWorks.map((work, idx) => (
+                        <div key={idx} className="flex flex-col gap-2 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                          <span className="text-sm font-bold text-gray-600">{work.date} の作品 ({savedWorks.length - idx})</span>
+                          <p className="text-sm font-note text-indigo-800 truncate">{work.sentence}</p>
+                          <div className="flex gap-2">
+                            <button onClick={() => { setViewingWork(work); setSlideFailCount(0); setLocalVoiceCleared(false); setPracticeIndex(0); setFeedbackMsg(""); goToStep('VIEW_SLIDESHOW'); }} className="text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-2 px-3 rounded shadow-sm border border-indigo-300 flex-1">▶️ スライドを見る</button>
+                            <button onClick={() => { setViewingWork(work); goToStep('IMAGE_INPUT'); }} className="text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold py-2 px-3 rounded shadow-sm border border-yellow-300 flex-1">✏️ 修正</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <button onClick={() => { 
+                    setInputs(JSON.parse(JSON.stringify(INITIAL_INPUTS))); 
+                    goToStep('INPUT'); 
+                  }} 
+                  className="w-full bg-red-500 hover:bg-red-600 text-white text-2xl font-bold py-6 rounded-2xl shadow-lg transform transition hover:scale-105 mb-8">
+                  ▶ あたらしく つくる！
+                </button>
+                
+                <div className="border-t-4 border-dashed border-gray-200 pt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-gray-700">🐶 キャラクターの おせわ</h2>
+                    <div className="bg-yellow-100 text-yellow-800 font-bold px-4 py-1 rounded-full border-2 border-yellow-300">🪙 {totalCoins} コイン</div>
+                  </div>
+                  
+                  <div className="bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-100 flex flex-col items-center relative mb-6">
+                    <div className="text-7xl mb-2 drop-shadow-md">{currentStage.emoji}</div>
+                    <div className="font-bold text-indigo-800 mb-2 text-xl">{currentStage.name} (Lv.{level})</div>
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden border border-gray-300">
+                      <div className="bg-blue-500 h-4 rounded-full transition-all duration-500" style={{ width: nextReq === 'MAX' ? '100%' : `${(exp / nextReq) * 100}%` }}></div>
+                    </div>
+                    <div className="text-xs font-bold text-gray-500 mb-4">EXP: {exp} / {nextReq}</div>
+                    
+                    <div className="flex gap-2 w-full">
+                      {Object.keys(SALMON_TYPES).map(key => {
+                        const type = SALMON_TYPES[key];
+                        const count = items[key] || 0;
+                        return (
+                          <button key={key} onClick={() => feedInnuuni(key)} disabled={count === 0} className={`flex-1 py-2 rounded-xl font-bold shadow-sm text-sm border-2 ${count > 0 ? 'bg-white border-blue-300 hover:bg-blue-50' : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'} flex flex-col items-center`}>
+                            <span className="text-xl">{type.emoji}</span>
+                            <span>{count}個</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {feedbackMsg && <p className="text-blue-600 font-bold mt-2 animate-bounce">{feedbackMsg}</p>}
+                    
+                    {helpers.length > 0 && (
+                      <div className="mt-4 p-3 bg-white rounded-xl border border-indigo-200 w-full text-left">
+                        <p className="text-xs font-bold text-indigo-500 mb-1 flex items-center gap-1"><span>🤝</span> お助けキャラ (ゲームを手伝ってくれるよ！)</p>
+                        <div className="flex flex-wrap gap-1">
+                          {helpers.map(h => (
+                            <span key={h.id} className="text-lg bg-gray-50 p-1 rounded-md border border-gray-100 shadow-sm" title={h.name}>{h.emoji}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-4 flex-wrap">
+                    <button onClick={() => goToStep('GAME_INTRO')} disabled={!canPlayGame} className={`flex-1 min-w-[150px] font-bold py-4 rounded-xl shadow-md transition text-lg ${canPlayGame ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                      🎮 ゲームで<br/>コインを集める
+                      {!canPlayGame && <span className="block text-xs mt-1 text-red-500 font-bold">※新しい文章を作ってね</span>}
+                    </button>
+                    <button onClick={startGacha} disabled={totalCoins < 5} className={`flex-1 min-w-[150px] font-bold py-4 rounded-xl shadow-md transition text-lg ${totalCoins >= 5 ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                      🎁 ガチャをする<br/><span className="text-sm font-normal">(5コイン)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {gachaState && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative border-8 border-yellow-400">
+                  {gachaState.phase === 'quiz' && (
+                    <div className="animate-fade-in-up">
+                      <h3 className="text-2xl font-bold text-blue-700 mb-2">英単語クイズ！</h3>
+                      <p className="text-gray-600 font-bold mb-6">正解するまで何度でも挑戦できるよ！</p>
+                      
+                      <div className="text-3xl font-bold text-gray-800 mb-4 bg-gray-100 py-4 rounded-xl border-2 border-gray-200 flex items-center justify-center gap-4">
+                        {gachaTargetRef.current.ja}
+                        <button onClick={() => speak(gachaTargetRef.current.en)} className="bg-blue-100 p-2 rounded-full text-xl shadow-sm border border-blue-200">🔊</button>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3">
+                        {quizOptions.map((opt, i) => (
+                          <button key={i} onClick={() => handleQuizAnswer(opt)} className="bg-white hover:bg-blue-50 border-2 border-blue-300 text-blue-800 font-bold text-xl py-3 rounded-xl shadow-sm font-note">
+                            {opt.en}
+                          </button>
+                        ))}
+                      </div>
+                      {feedbackMsg && <p className="text-red-500 font-bold mt-4 animate-shake">{feedbackMsg}</p>}
+                    </div>
+                  )}
+                  {gachaState.phase === 'voice' && (
+                    <div className="animate-fade-in-up">
+                      <h3 className="text-2xl font-bold text-green-700 mb-2">大正解！🎉</h3>
+                      <p className="text-gray-600 font-bold mb-6">マイクで正しく発音できたら<span className="text-red-500">ボーナスガチャ</span>！</p>
+                      <div className="text-4xl font-bold text-gray-800 mb-6 font-note">{gachaTargetRef.current.en}</div>
+                      
+                      <button onClick={() => startListening(gachaTargetRef.current.en, () => rollGacha(true, false))} disabled={isListening} className={`w-20 h-20 rounded-full shadow-lg text-3xl mb-4 ${isListening ? 'bg-red-500 animate-pulse' : 'bg-teal-500 hover:bg-teal-600'} text-white transition`}>🎤</button>
+                      <p className="font-bold text-gray-600 mb-4">{isListening ? "はなしてね..." : "マイクをおして発音！"}</p>
+                      {feedbackMsg && <p className="text-blue-600 font-bold mb-4">{feedbackMsg}</p>}
+
+                      <button onClick={() => setGachaState(null)} className="text-gray-500 underline font-bold mt-4 block w-full bg-gray-100 py-2 rounded-lg hover:bg-gray-200">スキップしてボーナスを諦める</button>
+                    </div>
+                  )}
+                  {gachaState.phase === 'animation' && (
+                    <div className="animate-pulse flex flex-col items-center justify-center py-8">
+                      <div className="text-8xl mb-6 animate-bounce">🎁</div>
+                      <h3 className="text-3xl font-bold text-yellow-600 mb-2">ガチャを引いています...</h3>
+                      <p className="text-gray-500 font-bold">何が出るかな？</p>
+                    </div>
+                  )}
+                  {gachaState.phase === 'result' && (
+                    <div className="animate-bounce-in">
+                      <h3 className="text-3xl font-bold text-yellow-600 mb-6">ガチャ結果！</h3>
+                      <div className="text-8xl mb-6">{gachaState.item.emoji}</div>
+                      <p className="text-2xl font-bold text-gray-800 mb-2">{gachaState.item.name}</p>
+                      <p className="text-sm font-bold text-blue-600 mb-8">EXP +{gachaState.item.exp}</p>
+                      
+                      {gachaState.hasNextBonus ? (
+                        <button onClick={() => setGachaState(prev => ({ ...prev, phase: 'quiz' }))} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl text-lg shadow-md animate-pulse">
+                          🎁 クイズに答えてボーナスガチャを引く！
+                        </button>
+                      ) : (
+                        <button onClick={() => setGachaState(null)} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-xl shadow-md">もどる</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      } 
+      else if (step === 'INPUT') {
+        content = (
+          <div className="min-h-screen p-4 flex flex-col items-center py-12 relative bg-indigo-50">
+            <BackButton />
+            <HomeButton />
+            <div className="w-full max-w-xl text-center pb-24">
+              <h2 className="text-2xl font-bold text-indigo-700 mb-6 bg-white py-3 rounded-full border-4 border-indigo-200 shadow-sm">日本のよいところを かこう！</h2>
+              
+              <div className="bg-white p-6 rounded-2xl mb-6 border-4 border-indigo-100 shadow-md text-left">
+                {inputs.map((inp, idx) => (
+                  <div key={idx} className="mb-6 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                    <h3 className="font-bold text-gray-700 mb-2 flex items-center">✨ {idx + 1}. {inp.label} {inp.example && <span className="ml-2 text-xs font-normal text-gray-400">例: {inp.example}</span>}</h3>
+                    {inp.note && <p className="text-sm font-bold text-indigo-600 mb-2">{inp.note}</p>}
+                    <input type="text" value={inp.action || ''} onChange={e => {
+                        const newInputs = [...inputs];
+                        newInputs[idx].action = e.target.value;
+                        setInputs(newInputs);
+                      }} className="w-full p-4 border-2 border-indigo-200 rounded-xl font-bold text-xl focus:outline-none focus:border-indigo-400 bg-indigo-50 mb-2 transition-colors" placeholder="日本語でかいてね" />
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {Object.keys(DIC).filter(k => {
+                        if(idx===0) return ['お正月','ひなまつり','七夕','富士山','すし','京都'].includes(k);
+                        if(idx===1) return ['春','夏','秋','冬','いつでも'].includes(k);
+                        if(idx===2) return ['花火を見る','もちを食べる','おどる','歌う','あそぶ'].includes(k);
+                        if(idx===3) return ['楽しい','美しい','すごい','かっこいい'].includes(k);
+                        return false;
+                      }).map(opt => (
+                        <button key={opt} onClick={() => {
+                          const newInputs = [...inputs];
+                          newInputs[idx].action = opt;
+                          setInputs(newInputs);
+                        }} className="text-sm bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-600 hover:bg-indigo-100 transition-colors">{opt}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                
+                {translatingState ? (
+                  <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 mt-4 text-center animate-pulse">
+                    <p className="text-blue-700 font-bold text-lg">⏳ ほんやく中...</p>
+                  </div>
+                ) : (
+                  <button onClick={handleTranslateAll} disabled={!isAllInputsFilled} className={`w-full mt-4 text-xl font-bold py-5 rounded-xl shadow-md transition transform ${isAllInputsFilled ? 'bg-indigo-500 hover:bg-indigo-600 text-white hover:-translate-y-1' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}>
+                    えいごの文にする！
+                  </button>
+                )}
+                {!isAllInputsFilled && <p className="text-center text-sm text-red-500 font-bold mt-3">※すべてのわくに入力してね！</p>}
+              </div>
+            </div>
+          </div>
+        );
+      }
+      else if (step === 'NOTE_WRITE') {
+        content = (
+          <div className="min-h-screen bg-yellow-50 p-4 flex flex-col items-center py-12 relative">
+            <div className="w-full max-w-4xl bg-white p-4 md:p-8 rounded-3xl shadow-xl border-4 border-yellow-300 mb-20">
+              <h2 className="text-3xl font-bold text-yellow-700 mb-6 text-center">📝 ノートに 書きうつそう！</h2>
+              <p className="text-center font-bold text-gray-600 mb-6">下の えいごの文を、じぶんの ノートに 書いてね。<br/>書きおわったら、先生に チェックしてもらおう！</p>
+              
+              <div className="bg-white border-2 border-gray-300 p-4 md:p-8 rounded-xl shadow-inner mb-8 overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/lined-paper-2.png')]">
+                <div className="text-left w-full overflow-x-auto pb-4 custom-scrollbar">
+                  <div className="min-w-max">
+                    <div className="four-lines-bg rounded-lg border-2 border-gray-200 shadow-sm flex min-w-max bg-white/80">
+                      <span className="font-note font-bold px-4 text-gray-800 flex items-baseline flex-nowrap">
+                        {viewingWork.sentence}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button onClick={() => goToStep('TEACHER_CHECK')} className="w-full bg-red-500 hover:bg-red-600 text-white text-xl font-bold py-5 rounded-2xl shadow-lg animate-pulse">
+                🙋 先生をよぶ（チェックがめんへ）
+              </button>
+            </div>
+          </div>
+        );
+      }
+      else if (step === 'TEACHER_CHECK') {
+        content = (
+          <div className="min-h-screen bg-gray-200 p-4 flex flex-col items-center py-12 relative">
+            <div className="w-full max-w-3xl bg-white p-4 md:p-8 rounded-3xl shadow-2xl border-8 border-gray-400 relative">
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white px-8 py-2 rounded-full font-bold text-xl shadow-md tracking-wider">先生専用 修正画面</div>
+              <p className="text-center font-bold text-gray-700 mt-6 mb-6">児童のノートを確認し、必要であれば以下の英文を手直ししてください。<br/>修正内容はスライドに反映されます。</p>
+              
+              <div className="mb-8 overflow-x-auto custom-scrollbar">
+                <label className="block text-sm font-bold text-teal-700 mb-2">英文の修正</label>
+                <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 flex min-w-max">
+                  <span className="font-note font-bold flex items-baseline flex-nowrap gap-2 text-2xl py-2 w-full">
+                    <input type="text" value={viewingWork.sentence} onChange={e => {
+                      setViewingWork({...viewingWork, sentence: e.target.value});
+                    }} className="border-b-2 border-teal-400 focus:outline-none focus:bg-teal-50 px-2 pb-0 text-teal-700 bg-transparent min-w-[500px] leading-none m-0 font-note w-full" />
+                  </span>
+                </div>
+              </div>
+              
+              <button onClick={() => {
+                markFirstDone();
+                goToStep('IMAGE_INPUT');
+              }} className="w-full bg-green-500 text-white text-xl font-bold py-5 rounded-2xl shadow-lg hover:bg-green-600 transition">
+                ✅ チェック完了（画像さがしへすすむ）
+              </button>
+            </div>
+          </div>
+        );
+      }
+      else if (step === 'IMAGE_INPUT') {
+        const canProceed = viewingWork && viewingWork.img && viewingWork.img.trim() !== "";
+        // 詳細説明を優先し、なければ行事の項目で画像検索する
+        let searchKeyword = 'Japan';
+        if (viewingWork && viewingWork.inputs) {
+            const detailInput = viewingWork.inputs.find(i => i.type === 'detail');
+            const eventInput = viewingWork.inputs.find(i => i.type === 'event');
+            if (detailInput && detailInput.action) {
+                searchKeyword = detailInput.action;
+            } else if (eventInput && eventInput.action) {
+                searchKeyword = eventInput.action;
+            }
+        }
+        
+        content = (
+          <div className="min-h-screen p-4 flex flex-col items-center py-12 relative bg-indigo-50">
+            <BackButton />
+            <HomeButton />
+            <div className="w-full max-w-2xl bg-white p-6 md:p-8 rounded-3xl shadow-xl border-4 border-indigo-200">
+              <h2 className="text-2xl font-bold text-indigo-700 mb-6 text-center">スライドの文章を かくにん・修正しよう✍️</h2>
+              
+              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200 shadow-inner mb-8">
+                <label className="block text-sm font-bold text-gray-600 mb-2">文章 (自由に直せるよ)</label>
+                <textarea value={viewingWork.sentence} onChange={e => {
+                  setViewingWork({...viewingWork, sentence: e.target.value});
+                }} className="w-full p-4 border-2 border-indigo-300 rounded-xl font-note text-2xl text-gray-800 focus:outline-none focus:bg-white bg-transparent resize-none leading-relaxed" rows="3" />
+                <button onClick={() => speak(viewingWork.sentence)} className="mt-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-4 rounded-lg shadow-sm border border-blue-300">🔊 音声で聞く</button>
+              </div>
+
+              <h2 className="text-2xl font-bold text-indigo-700 mb-6 text-center">スライドの がぞうを さがそう🖼️</h2>
+              
+              <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200 shadow-sm">
+                <a href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(searchKeyword)}`} target="_blank" rel="noopener noreferrer" className="inline-block mb-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-3 px-6 rounded-xl shadow-sm border border-indigo-300 transition-colors w-full text-center text-lg">
+                  🔍 「{searchKeyword}」で 画像けんさく
+                </a>
+
+                <label className="block text-sm font-bold text-gray-600 mb-2">画像アドレスをはりつけ</label>
+                <input type="text" value={viewingWork.img || ''} onChange={e => {
+                  setViewingWork({...viewingWork, img: e.target.value});
+                }} placeholder="https://..." className="w-full p-4 border-2 border-gray-300 rounded-xl text-sm font-bold focus:outline-none focus:border-indigo-500 bg-white mb-4" />
+                
+                {viewingWork.img && (
+                  <div className="relative flex justify-center">
+                    <img src={viewingWork.img} alt="preview" onError={(e) => {e.target.style.display='none'; e.target.parentElement.innerHTML = '<div class="text-red-500 font-bold bg-red-50 p-3 rounded-lg border-2 border-red-200 text-sm">画像が読み込めません💦 別のアドレスをためしてね！</div>';}} className="h-48 object-cover rounded-lg shadow-md border-2 border-gray-300" />
+                  </div>
+                )}
+              </div>
+              
+              <button onClick={() => { 
+                  if (canProceed) {
+                    const isExisting = savedWorks.some(w => w.date === viewingWork.date);
+                    if (isExisting) {
+                      updateWork(viewingWork.date, viewingWork.sentence, viewingWork.img);
+                    } else {
+                      saveWork(viewingWork);
+                    }
+                    setSlideFailCount(0);
+                    setLocalVoiceCleared(false);
+                    setPracticeIndex(0);
+                    setFeedbackMsg("");
+                    goToStep('VIEW_SLIDESHOW'); 
+                  } else {
+                    alert("画像アドレスを入れてね！");
+                  }
+                }} 
+                className={`w-full mt-8 text-white text-xl font-bold py-5 rounded-2xl shadow-lg transition transform ${canProceed ? 'bg-blue-500 hover:bg-blue-600 hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'}`}>
+                スライド完成！ 見てみよう ▶
+              </button>
+            </div>
+          </div>
+        );
+      }
+      else if (step === 'VIEW_SLIDESHOW') {
+        const toggleFullscreen = () => {
+          const elem = document.getElementById('slide-fullscreen-container');
+          if (!elem) return;
+          if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen();
+          }
+        };
+
+        const practiceSentences = viewingWork.sentence.split('.').map(s => s.trim()).filter(s => s.length > 0).map(s => s + '.');
+        const targetSentence = practiceSentences[practiceIndex] || '';
+
+        content = (
+          <div id="slide-fullscreen-container" className="fixed inset-0 bg-black flex flex-col z-50">
+            <div className="flex-1 flex items-center justify-center p-2 md:p-8">
+              <div className="w-full h-full max-h-[90vh] max-w-5xl slide-bg rounded-xl md:rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.2)] overflow-hidden relative flex flex-col border-4 border-gray-800">
+                
+                <button onClick={toggleFullscreen} className="absolute top-4 right-20 bg-gray-800/80 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-lg z-20 hover:bg-gray-700 border border-gray-600 backdrop-blur" title="全画面表示">⛶</button>
+                <button onClick={() => speak(viewingWork.sentence)} className="absolute top-4 right-4 bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-lg z-20 hover:bg-indigo-600 border-2 border-white">🔊</button>
+                
+                <button onClick={() => {
+                  if (document.fullscreenElement) document.exitFullscreen(); 
+                  goToStep('IMAGE_INPUT');
+                }} className="absolute top-20 right-4 bg-yellow-500 text-white px-4 py-2 rounded-full font-bold z-20 shadow-lg hover:bg-yellow-600 border-2 border-white">
+                  ✏️ 修正する
+                </button>
+
+                <div className="flex-1 min-h-0 w-full flex items-center justify-center bg-gray-900 relative">
+                  {viewingWork.img ? (
+                    <img src={viewingWork.img} alt="slide" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-gray-500 font-bold text-2xl">がぞう は ありません</div>
+                  )}
+                </div>
+                
+                <div className="shrink-0 w-full bg-black px-4 py-4 md:py-6 flex flex-col items-center justify-center text-center border-t-2 border-gray-800 min-h-[30vh]">
+                  
+                  {!localVoiceCleared ? (
+                    <div className="bg-gray-800 p-4 rounded-xl border border-gray-600 w-full max-w-2xl">
+                      <div className="flex flex-col items-center">
+                        <p className="text-gray-300 font-bold mb-2 text-sm">順番に読んでみよう！ ({practiceIndex + 1}/{practiceSentences.length})</p>
+                        
+                        <div className="mb-4 text-2xl md:text-3xl font-note leading-tight text-left flex flex-wrap justify-center gap-x-2">
+                          {practiceSentences.map((s, i) => (
+                            <span key={i} className={`transition-colors duration-300 ${i === practiceIndex ? 'text-yellow-300 font-bold scale-105' : (i < practiceIndex ? 'text-green-500' : 'text-gray-500')}`}>
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center justify-center gap-4 mb-2">
+                          <button onClick={() => speak(targetSentence)} className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xl shadow-lg border-2 border-blue-300 flex items-center justify-center">🔊</button>
+                          
+                          <button onClick={() => {
+                            startListening(targetSentence, 
+                             () => { 
+                               if (practiceIndex < practiceSentences.length - 1) {
+                                 setFeedbackMsg("Good! つぎの文も読んでみよう！");
+                                 setPracticeIndex(prev => prev + 1);
+                               } else {
+                                 setLocalVoiceCleared(true);
+                                 if (!viewingWork.hasPlayedGame) {
+                                   setFeedbackMsg("Great! 🎉 ゲームができるようになったよ！"); 
+                                   setCanPlayGame(true); 
+                                   updateWorkGameStatus(viewingWork.date);
+                                 } else {
+                                   setFeedbackMsg("Great! 🎉 (このスライドでのゲームはプレイ済みだよ)");
+                                 }
+                               }
+                               setSlideFailCount(0); 
+                             }, 
+                             () => { setSlideFailCount(prev => prev + 1); }
+                            );
+                          }} disabled={isListening} className={`w-16 h-16 rounded-full shadow-lg text-2xl ${isListening ? 'bg-red-500 animate-pulse' : 'bg-teal-500 hover:bg-teal-600'} text-white transition flex items-center justify-center border-2 border-white`}>🎤</button>
+                          
+                          {slideFailCount >= 3 && (
+                            <button onClick={() => { 
+                              if (practiceIndex < practiceSentences.length - 1) {
+                                setFeedbackMsg("スキップして次の文へ！");
+                                setPracticeIndex(prev => prev + 1);
+                              } else {
+                                setLocalVoiceCleared(true);
+                                if (!viewingWork.hasPlayedGame) {
+                                  setFeedbackMsg("スキップしました。ゲームができるようになったよ！");
+                                  setCanPlayGame(true); 
+                                  updateWorkGameStatus(viewingWork.date);
+                                } else {
+                                  setFeedbackMsg("スキップしました。(プレイ済み)");
+                                }
+                              }
+                              setSlideFailCount(0);
+                            }} className="text-sm bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-full transition shadow border border-gray-500">⏭️ スキップ</button>
+                          )}
+                        </div>
+                        <p className="text-gray-300 font-bold text-xs">{isListening ? "はなしてね..." : "マイクで正しく読めると、次へ進めるよ！"}</p>
+                        {feedbackMsg && <p className={feedbackMsg.includes("エラー") || feedbackMsg.includes("おしい") || feedbackMsg.includes("マイクが") ? "text-yellow-400 font-bold mt-2 whitespace-pre-line text-sm" : "text-green-400 font-bold mt-2 text-sm"}>{feedbackMsg}</p>}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="animate-bounce-in w-full max-w-lg">
+                      <p className="text-white text-2xl md:text-4xl font-bold font-note leading-tight mb-4">{viewingWork.sentence}</p>
+                      <p className="text-green-400 font-bold text-xl mb-2 text-center">✨ 音声クリア！ ✨</p>
+                      {feedbackMsg && <p className="text-sm text-yellow-300 font-bold mb-4 text-center">{feedbackMsg}</p>}
+                      <button onClick={() => {
+                         if (document.fullscreenElement) document.exitFullscreen(); 
+                         setStep('HOME'); setStepHistory(['HOME']);
+                      }} className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-full text-lg shadow-md animate-pulse">
+                        🙋 友だちにスライドを見せた！(ホームへ)
+                      </button>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      else if (step === 'GAME_INTRO') {
+        content = (
+          <div className="min-h-screen bg-gray-900 p-4 flex items-center justify-center relative">
+            <BackButton />
+            <HomeButton />
+            <div className="max-w-lg w-full bg-gray-800 rounded-3xl shadow-xl p-8 text-center border-4 border-gray-600">
+              <h2 className="text-3xl font-bold text-white mb-6">コインあつめゲーム！</h2>
+              <div className="bg-gray-700 p-6 rounded-2xl mb-8 border border-gray-600">
+                <div className="text-6xl mb-4 text-center flex justify-center gap-2">
+                  <span>🪙</span><span className="animate-bounce">{currentStage.emoji}</span>
+                </div>
+                <p className="text-lg font-bold text-gray-200 leading-relaxed text-left">
+                  <span className="text-teal-400">{currentStage.name}</span> をうごかして コインを集めよう！<br/><br/>
+                  <span className="text-yellow-400">操作:</span> 矢印キー または W,A,S,D (画面のボタンも使えるよ)<br/>
+                  <span className="text-red-400">注意:</span> 敵(👾インベーダー)にぶつかると しばらく動けなくなります。<br/><br/>
+                  {helpers.length > 0 && <span className="block text-purple-400 text-sm mb-2 font-bold">✨ お助けキャラが敵を倒してくれます！ ✨</span>}
+                  制限時間は <span className="text-white text-xl">15秒</span>！
+                </p>
+              </div>
+              <button onClick={() => goToStep('GAME')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-12 rounded-full text-2xl shadow-[0_0_15px_rgba(37,99,235,0.5)] w-full transition transform hover:scale-105 border-2 border-blue-400">スタート！</button>
+            </div>
+          </div>
+        );
+      }
+      else if (step === 'GAME') {
+         content = (
+           <div className="min-h-screen bg-gray-900 flex flex-col relative touch-none">
+              <div className="absolute top-4 left-4 z-50">
+                <button onClick={() => { setStep('HOME'); setStepHistory(['HOME']); }} className="bg-gray-800/80 text-white px-6 py-3 rounded-full font-bold border-2 border-white/50 backdrop-blur shadow-lg">
+                  ✖ ホームにもどる
+                </button>
+              </div>
+              <div className="flex-1 w-full flex items-center justify-center">
+                <TwoDCoinGame playerEmoji={currentStage.emoji} helpers={helpers} onFinish={(coins) => {
+                  saveProgress(totalCoins + coins, items, level, exp, helpers);
+                  setCanPlayGame(false); 
+                  setStep('HOME');
+                  setStepHistory(['HOME']);
+                }} />
+              </div>
+           </div>
+         );
+      }
+
+      return (
+        <div className="min-h-screen relative">
+          {content}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
