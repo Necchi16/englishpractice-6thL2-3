@@ -66,14 +66,15 @@
     const DIC = {
       'お正月': "New Year's Day", 'ひなまつり': 'Doll Festival', 'こどもの日': "Children's Day", '七夕': 'Star Festival',
       '運動会': 'Sports Day', '大晦日': "New Year's Eve", '富士山': 'Mt. Fuji', 'すし': 'sushi', 'たこ焼き': 'takoyaki', 
-      'ラーメン': 'ramen', '京都': 'Kyoto', '東京': 'Tokyo',
+      'ラーメン': 'ramen', '京都': 'Kyoto', '東京': 'Tokyo', 'お祭り': 'festival', '夏休み': 'summer vacation', '遠足': 'school trip', 'クリスマス': 'Christmas', 'ハロウィン': 'Halloween', '温泉': 'hot spring', 'お城': 'castle', '神社': 'shrine', 'お寺': 'temple', 'アニメ': 'anime', '北海道': 'Hokkaido', '沖縄': 'Okinawa',
       '春': 'spring', '夏': 'summer', '秋': 'autumn', '冬': 'winter', 'いつでも': 'Japan',
       '同じ': 'same', '違う': 'different', '長い': 'long', '短い': 'short',
       '速い': 'fast', '遅い': 'slow', '驚くべき': 'amazing', '美しい': 'beautiful',
       'かっこいい': 'cool', 'わくわくする': 'exciting', '有名な': 'famous', 'すばらしい': 'fantastic',
       'お気に入り': 'favorite', '楽しい': 'fun', '良い': 'good', 'すごい': 'great',
       '面白い': 'interesting', '素敵な': 'nice', '輝く': 'shiny', '素晴らしい': 'wonderful',
-      '花火を見る': 'see fireworks', 'もちを食べる': 'eat mochi', 'おどる': 'dance', '歌う': 'sing', 'あそぶ': 'play'
+      '花火を見る': 'see fireworks', 'もちを食べる': 'eat mochi', 'おどる': 'dance', '歌う': 'sing', 'あそぶ': 'play',
+      '写真を撮る': 'take pictures', '泳ぐ': 'swim', 'スキーをする': 'ski', '買い物をする': 'shop', '作る': 'make', '食べる': 'eat', '行く': 'go', '見る': 'see'
     };
 
     const QUIZ_WORDS = Object.keys(DIC).map(ja => ({ ja, en: DIC[ja] }));
@@ -86,7 +87,15 @@
       5: { id: 5, name: "ケルベロスーニ", emoji: "🔥", reqExp: 50, next: [6] },
       6: { id: 6, name: "ペガサスーニ", emoji: "🦄", reqExp: 80, next: [7] },
       7: { id: 7, name: "ドラゴンイッヌ", emoji: "🐉", reqExp: 120, next: [8] },
-      8: { id: 8, name: "ゴッドイッヌ", emoji: "👑", reqExp: 200, next: [] }
+      8: { id: 8, name: "ゴッドイッヌ", emoji: "👑", reqExp: 200, next: [9] },
+      9: { id: 9, name: "コスモイッヌ", emoji: "🌌", reqExp: 300, next: [10] },
+      10: { id: 10, name: "ギャラクシーイッヌ", emoji: "🌠", reqExp: 450, next: [11] },
+      11: { id: 11, name: "ユニバースイッヌ", emoji: "🪐", reqExp: 650, next: [12] },
+      12: { id: 12, name: "ディメンションイッヌ", emoji: "🌀", reqExp: 900, next: [13] },
+      13: { id: 13, name: "インフィニティイッヌ", emoji: "♾️", reqExp: 1200, next: [14] },
+      14: { id: 14, name: "オメガイッヌ", emoji: "🔯", reqExp: 1600, next: [15] },
+      15: { id: 15, name: "アルティメットイッヌ", emoji: "🌟", reqExp: 2100, next: [16] },
+      16: { id: 16, name: "創造神イッヌ", emoji: "✨", reqExp: 3000, next: [] }
     };
 
     const SALMON_TYPES = {
@@ -139,7 +148,7 @@
         const w = window.innerWidth;
         const h = window.innerHeight * 0.75; 
         const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-        camera.position.set(0, 75, 0);
+        camera.position.set(0, 120, 0);
         camera.up.set(0, 0, -1);
         camera.lookAt(0, 0, 0);
 
@@ -147,7 +156,7 @@
         renderer.setSize(w, h);
         if (mountRef.current) mountRef.current.appendChild(renderer.domElement);
 
-        const grid = new THREE.GridHelper(60, 30, 0xffffff, 0xffffff);
+        const grid = new THREE.GridHelper(100, 50, 0xffffff, 0xffffff);
         grid.material.opacity = 0.5;
         grid.material.transparent = true;
         scene.add(grid);
@@ -167,7 +176,7 @@
         const spawnCoin = () => {
           const coin = createEmojiSprite('🪙', 64);
           coin.scale.set(3, 3, 1);
-          coin.position.set((Math.random() - 0.5) * 50, 1.5, (Math.random() - 0.5) * 50);
+          coin.position.set((Math.random() - 0.5) * 90, 1.5, (Math.random() - 0.5) * 90);
           scene.add(coin);
           gameData.current.coins.push(coin);
         };
@@ -176,7 +185,7 @@
         const spawnEnemy = () => {
           const enemy = createEmojiSprite('👾', 64);
           enemy.scale.set(4, 4, 1);
-          enemy.position.set((Math.random() - 0.5) * 50, 2, (Math.random() - 0.5) * 50);
+          enemy.position.set((Math.random() - 0.5) * 90, 2, (Math.random() - 0.5) * 90);
           enemy.userData = { dx: (Math.random() - 0.5) * 0.6, dz: (Math.random() - 0.5) * 0.6 };
           scene.add(enemy);
           gameData.current.enemies.push(enemy);
@@ -187,7 +196,7 @@
           helpers.forEach(h => {
             const helperSprite = createEmojiSprite(h.emoji, 64);
             helperSprite.scale.set(3.5, 3.5, 1);
-            helperSprite.position.set((Math.random() - 0.5) * 50, 2, (Math.random() - 0.5) * 50);
+            helperSprite.position.set((Math.random() - 0.5) * 90, 2, (Math.random() - 0.5) * 90);
             helperSprite.userData = { dx: (Math.random() - 0.5) * 0.5, dz: (Math.random() - 0.5) * 0.5 };
             scene.add(helperSprite);
             gameData.current.helperSprites.push(helperSprite);
@@ -230,8 +239,8 @@
             if (keys['ArrowRight'] || keys['d']) dx += speed;
             playerSprite.position.x += dx;
             playerSprite.position.z += dz;
-            playerSprite.position.x = Math.max(-28, Math.min(28, playerSprite.position.x));
-            playerSprite.position.z = Math.max(-28, Math.min(28, playerSprite.position.z));
+            playerSprite.position.x = Math.max(-48, Math.min(48, playerSprite.position.x));
+            playerSprite.position.z = Math.max(-48, Math.min(48, playerSprite.position.z));
           }
 
           for (let i = coins.length - 1; i >= 0; i--) {
@@ -248,8 +257,8 @@
           enemies.forEach(e => {
             e.position.x += e.userData.dx;
             e.position.z += e.userData.dz;
-            if (e.position.x > 30 || e.position.x < -30) e.userData.dx *= -1;
-            if (e.position.z > 30 || e.position.z < -30) e.userData.dz *= -1;
+            if (e.position.x > 48 || e.position.x < -48) e.userData.dx *= -1;
+            if (e.position.z > 48 || e.position.z < -48) e.userData.dz *= -1;
             
             if (gameData.current.frozenFrames === 0 && playerSprite.position.distanceTo(e.position) < 3) {
               gameData.current.frozenFrames = 60;
@@ -265,12 +274,12 @@
           helperSprites.forEach(h => {
             h.position.x += h.userData.dx;
             h.position.z += h.userData.dz;
-            if (h.position.x > 30 || h.position.x < -30) h.userData.dx *= -1;
-            if (h.position.z > 30 || h.position.z < -30) h.userData.dz *= -1;
+            if (h.position.x > 48 || h.position.x < -48) h.userData.dx *= -1;
+            if (h.position.z > 48 || h.position.z < -48) h.userData.dz *= -1;
 
             enemies.forEach(e => {
               if (h.position.distanceTo(e.position) < 3.5) {
-                e.position.set((Math.random() - 0.5) * 50, 2, (Math.random() - 0.5) * 50);
+                e.position.set((Math.random() - 0.5) * 90, 2, (Math.random() - 0.5) * 90);
               }
             });
           });
@@ -707,14 +716,17 @@
                       
                       <div className="text-3xl font-bold text-gray-800 mb-4 bg-gray-100 py-4 rounded-xl border-2 border-gray-200 flex items-center justify-center gap-4">
                         {gachaTargetRef.current.ja}
-                        <button onClick={() => speak(gachaTargetRef.current.en)} className="bg-blue-100 p-2 rounded-full text-xl shadow-sm border border-blue-200">🔊</button>
+                        <button onClick={() => speak(gachaTargetRef.current.en)} className="bg-blue-100 p-2 rounded-full text-xl shadow-sm border border-blue-200" title="ヒントをきく">🔊</button>
                       </div>
 
                       <div className="grid grid-cols-1 gap-3">
                         {quizOptions.map((opt, i) => (
-                          <button key={i} onClick={() => handleQuizAnswer(opt)} className="bg-white hover:bg-blue-50 border-2 border-blue-300 text-blue-800 font-bold text-xl py-3 rounded-xl shadow-sm font-note">
-                            {opt.en}
-                          </button>
+                          <div key={i} className="flex gap-2">
+                            <button onClick={() => speak(opt.en)} className="bg-blue-100 hover:bg-blue-200 w-16 rounded-xl text-2xl shadow-sm border border-blue-300 flex items-center justify-center shrink-0" title="発音をきく">🔊</button>
+                            <button onClick={() => handleQuizAnswer(opt)} className="flex-1 bg-white hover:bg-blue-50 border-2 border-blue-300 text-blue-800 font-bold text-xl py-3 px-4 rounded-xl shadow-sm font-note text-center">
+                              {opt.en}
+                            </button>
+                          </div>
                         ))}
                       </div>
                       {feedbackMsg && <p className="text-red-500 font-bold mt-4 animate-shake">{feedbackMsg}</p>}
@@ -785,9 +797,9 @@
                       {(() => {
                         let options = [];
                         if (idx === 0) options = ['行事・お祭り', '食べ物', 'お土産', '観光地・建物', '自然・景色', '文化・芸術', 'その他'];
-                        else if (idx === 1) options = ['お正月','ひなまつり','七夕','富士山','すし','京都'];
+                        else if (idx === 1) options = ['お正月','お祭り','夏休み','富士山','すし','アニメ','温泉','京都'];
                         else if (idx === 2) options = ['春','夏','秋','冬','いつでも'];
-                        else if (idx === 3) options = ['花火を見る','もちを食べる','おどる','歌う','あそぶ'];
+                        else if (idx === 3) options = ['花火を見る','もちを食べる','写真を撮る','買い物をする','あそぶ','泳ぐ'];
                         else if (idx === 4) options = ['楽しい','美しい','すごい','かっこいい'];
                         
                         return options.map(opt => (
@@ -820,7 +832,9 @@
       else if (step === 'NOTE_WRITE') {
         content = (
           <div className="min-h-screen bg-yellow-50 p-4 flex flex-col items-center py-12 relative">
-            <div className="w-full max-w-4xl bg-white p-4 md:p-8 rounded-3xl shadow-xl border-4 border-yellow-300 mb-20">
+            <BackButton />
+            <HomeButton />
+            <div className="w-full max-w-4xl bg-white p-4 md:p-8 rounded-3xl shadow-xl border-4 border-yellow-300 mb-20 mt-10">
               <h2 className="text-3xl font-bold text-yellow-700 mb-6 text-center">📝 ノートに 書きうつそう！</h2>
               <p className="text-center font-bold text-gray-600 mb-6">下の えいごの文を、じぶんの ノートに 書いてね。<br/>書きおわったら、先生に チェックしてもらおう！</p>
               
@@ -846,7 +860,9 @@
       else if (step === 'TEACHER_CHECK') {
         content = (
           <div className="min-h-screen bg-gray-200 p-4 flex flex-col items-center py-12 relative">
-            <div className="w-full max-w-3xl bg-white p-4 md:p-8 rounded-3xl shadow-2xl border-8 border-gray-400 relative">
+            <BackButton />
+            <HomeButton />
+            <div className="w-full max-w-3xl bg-white p-4 md:p-8 rounded-3xl shadow-2xl border-8 border-gray-400 relative mt-10">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white px-8 py-2 rounded-full font-bold text-xl shadow-md tracking-wider">先生専用 修正画面</div>
               <p className="text-center font-bold text-gray-700 mt-6 mb-6">児童のノートを確認し、必要であれば以下の英文を手直ししてください。<br/>修正内容はスライドに反映されます。</p>
               
@@ -1022,20 +1038,20 @@
                           {slideFailCount >= 3 && (
                             <button onClick={() => { 
                               if (practiceIndex < practiceSentences.length - 1) {
-                                setFeedbackMsg("スキップして次の文へ！");
+                                setFeedbackMsg("Good! 3回がんばったね！次へ進もう！");
                                 setPracticeIndex(prev => prev + 1);
                               } else {
                                 setLocalVoiceCleared(true);
                                 if (!viewingWork.hasPlayedGame) {
-                                  setFeedbackMsg("スキップしました。ゲームができるようになったよ！");
+                                  setFeedbackMsg("3回がんばったね！🎉 ゲームができるようになったよ！");
                                   setCanPlayGame(true); 
                                   updateWorkGameStatus(viewingWork.date);
                                 } else {
-                                  setFeedbackMsg("スキップしました。(プレイ済み)");
+                                  setFeedbackMsg("3回がんばったね！🎉 (プレイ済み)");
                                 }
                               }
                               setSlideFailCount(0);
-                            }} className="text-sm bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-full transition shadow border border-gray-500">⏭️ スキップ</button>
+                            }} className="text-sm bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full transition shadow border border-green-600 font-bold">💮 3回がんばった！（正解にする）</button>
                           )}
                         </div>
                         <p className="text-gray-300 font-bold text-xs">{isListening ? "はなしてね..." : "マイクで正しく読めると、次へ進めるよ！"}</p>
